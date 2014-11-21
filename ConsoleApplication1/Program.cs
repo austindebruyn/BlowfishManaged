@@ -10,7 +10,8 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(Blowfish.Class1.hello);
+            Blowfish.BlowfishEngine engine = new Blowfish.BlowfishEngine();
+            engine.Go();
             Console.ReadLine();
         }
     }
