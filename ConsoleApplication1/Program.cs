@@ -11,7 +11,6 @@ namespace ConsoleApplication1
         static void Main(string[] args)
         {
             Blowfish.BlowfishEngine engine = new Blowfish.BlowfishEngine();
-            engine.Go();
             Console.ReadLine();
         }
     }

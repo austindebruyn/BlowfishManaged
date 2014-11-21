@@ -46,6 +46,9 @@ namespace Blowfish
         /// to calculate these constants. Bruce Schneier provided a set of constant vectors for us so that
         /// we do not need to perform this computation ourselves. There are also precomputed versions for up to
         /// 65535 digits of pi in base-16 notation.
+        /// 
+        /// Rebasing a long floating point cannot be done via iterating over the digits. Unfortunately, you do
+        /// need some extreme precision floating point struct to store the initial C.
         /// </summary>
 
         public static UInt32[] parray =
