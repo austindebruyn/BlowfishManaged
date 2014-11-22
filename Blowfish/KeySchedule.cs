@@ -22,18 +22,13 @@ namespace Blowfish
         UInt32[] Subkeys;
 
         /// <summary>
-        /// There are four 32-bit S-boxes with 256 entries each.
-        /// </summary>
-        UInt32[,] sBox;
-
-        /// <summary>
         /// Constructor.
         /// </summary>
-        public KeySchedule(byte[] Key)
+        public KeySchedule(BlowfishKey Key)
         {
             // Deep copy the reference.
             Original = new byte[Key.Length];
-            Array.Copy(Key, Original, Original.Length);
+            Array.Copy(Key.keyBytes, Original, Original.Length);
 
             Generate();
         }
@@ -53,10 +48,6 @@ namespace Blowfish
         /// </summary>
         void Generate()
         {
-            // S-boxes are initialized with the values of pi.
-            sBox = new UInt32[4, 256];
-            Array.Copy(BlowfishConstants.sbox, sBox, sBox.LongLength);
-
             // P-array is initialized with the continued values of pi, wherever
             // the s-box init vectors left off.
             Subkeys = new UInt32[18];
@@ -70,7 +61,8 @@ namespace Blowfish
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    Subkeys[0] ^= (UInt32)(Original[index++]) << j;
+                    UInt32 d = (UInt32)(Original[index++]);
+                    Subkeys[i] ^= (d  << ((3-j) * 8));
                     if (index >= Original.Length) index = 0;
                 }
             }

@@ -52,6 +52,10 @@
       <Project>{42a56715-1c3f-41b0-8fb7-451bf9fa9733}</Project>
       <Name>Blowfish</Name>
     </ProjectReference>
+    <ProjectReference Include="..\FireXware_Blowfish\FireXware_Blowfish.csproj">
+      <Project>{e0a6c1d1-cbd2-47f3-ac12-b4c4eaa9ff46}</Project>
+      <Name>FireXware_Blowfish</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

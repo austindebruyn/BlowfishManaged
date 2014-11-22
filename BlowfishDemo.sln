@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "Cons
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E578B863-E99D-43B6-84AE-18E8E5DE4CE0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FireXware_Blowfish", "FireXware_Blowfish\FireXware_Blowfish.csproj", "{E0A6C1D1-CBD2-47F3-AC12-B4C4EAA9FF46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{E578B863-E99D-43B6-84AE-18E8E5DE4CE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E578B863-E99D-43B6-84AE-18E8E5DE4CE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E578B863-E99D-43B6-84AE-18E8E5DE4CE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0A6C1D1-CBD2-47F3-AC12-B4C4EAA9FF46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0A6C1D1-CBD2-47F3-AC12-B4C4EAA9FF46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0A6C1D1-CBD2-47F3-AC12-B4C4EAA9FF46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0A6C1D1-CBD2-47F3-AC12-B4C4EAA9FF46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

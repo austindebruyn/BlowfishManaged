@@ -13,34 +13,62 @@ namespace Blowfish
     public class BlowfishEngine
     {
         /// <summary>
-        /// Constructor.
+        /// The key schedule the engine is currently using. This is expensive to compute,
+        /// so try to re-use where possible.
+        /// </summary>
+        KeySchedule Schedule;
+
+        /// <summary>
+        /// Default constructor.
         /// </summary>
         public BlowfishEngine()
         {
-            byte[] key = new byte[] { 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10 };
-            byte[] plain = new byte[] { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef };
 
-            key = ConvertHexStringToByteArray("0000000000000000");
-            plain = ConvertHexStringToByteArray("0000000000000000");
+        }
 
-            Console.WriteLine("Key: \n" + BitConverter.ToString(key));
-            Console.WriteLine("Plaintext: \n" + BitConverter.ToString(plain));
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public BlowfishEngine(BlowfishKey newKey)
+        {
+            SetKey(newKey);
+        }
 
-            var Schedule = new KeySchedule(key);
+        public UInt64 Encrypt(String Plaintext)
+        {
+            return Encrypt(ByteOperations.ConvertHexStringToByteArray(Plaintext));
+        }
 
+        /// <summary>
+        /// Encrypt block of text.
+        /// </summary>
+        /// <param name="Plaintext"></param>
+        public UInt64 Encrypt(byte[] Plaintext)
+        {
+            UInt64[] plain64 = PackBytesIntoUInt64(Plaintext);
+            UInt64 Final = EncryptBlock(Swap(plain64[0]), Schedule);
+
+            return Final;
+        }
+
+        /// <summary>
+        /// Assigns the given key to the engine and computes the schedule.
+        /// </summary>
+        /// <param name="key"></param>
+        public void SetKey(BlowfishKey key)
+        {
+            Schedule = new KeySchedule(key);
             UInt64 bitScape = 0x0000000000000000;
 
             for (int i = 0; i < 9; i++)
             {
-                //Console.WriteLine("Replacing keys " + (i + 1) + " and " + (i + 2) + ".");
                 bitScape = EncryptBlock(bitScape, Schedule);
-                //Console.WriteLine("Bitscape is " + UInt64ToByteString(bitScape) + ".");
-                //Console.WriteLine("New keys are " + UInt32ToByteString(Left(bitScape)) + " and " + UInt32ToByteString(Right(bitScape)) + ".");
                 Schedule.Set(i * 2, Left(bitScape));
                 Schedule.Set(i * 2 + 1, Right(bitScape));
+                bitScape = Swap(bitScape);
             }
 
-            for (int i = 0; i < 1024;)
+            for (int i = 0; i < 1024; )
             {
                 bitScape = EncryptBlock(bitScape, Schedule);
 
@@ -48,47 +76,63 @@ namespace Blowfish
                 i++;
                 BlowfishConstants.sbox[i / 256, i % 256] = Right(bitScape);
                 i++;
+
+                bitScape = Swap(bitScape);
             }
-
-            UInt64[] plain64 = PackBytesIntoUInt64(plain);
-
-            UInt64 Final = EncryptBlock(plain64[0], Schedule);
-            Console.WriteLine("Final ciphertext: " + UInt64ToByteString(Final));
-
-            //UInt64 Decrypted = DecryptBlock(Final, Schedule);
-            //Console.WriteLine("Result of decryption: " + UInt64ToByteString(Decrypted));
-        }
-
-        public static byte[] ConvertHexStringToByteArray(string hexString)
-        {
-            if (hexString.Length % 2 != 0)
-            {
-                throw new ArgumentException(String.Format(System.Globalization.CultureInfo.InvariantCulture, "The binary key cannot have an odd number of digits: {0}", hexString));
-            }
-
-            byte[] HexAsBytes = new byte[hexString.Length / 2];
-            for (int index = 0; index < HexAsBytes.Length; index++)
-            {
-                string byteValue = hexString.Substring(index * 2, 2);
-                HexAsBytes[index] = byte.Parse(byteValue, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
-            }
-
-            return HexAsBytes;
         }
 
         UInt64 EncryptBlock(UInt64 Data, KeySchedule Schedule)
         {
-            for (int i = 0; i < 16; i++)
+            UInt32 xl_par = Right(Data);
+            UInt32 xr_par = Left(Data);
+
+            xl_par ^= Schedule.Get(0);
+            for (int i = 0; i < 16; i += 2)
             {
-                Data = Round(Data, Schedule.Get(i));
-                //Console.WriteLine("After round " + (i + 1) + ": \n" + UInt64ToByteString(Data));
+                xr_par = round(xr_par, xl_par, Schedule.Get(i+1));
+                xl_par = round(xl_par, xr_par, Schedule.Get(i+2));
             }
+            xr_par = xr_par ^ Schedule.Get(17);
 
-            // Undo the last swap.
-            UInt32 leftHalf = Right(Data) ^ Schedule.Get(16);
-            UInt32 rightHalf = Left(Data) ^ Schedule.Get(17);
+            //swap the blocks
+            uint swap = xl_par;
+            xl_par = xr_par;
+            xr_par = swap;
 
-            return Combine(leftHalf, rightHalf);
+            return Combine(xl_par, xr_par);
+        }
+
+        private uint round(uint a, uint b, UInt32 Key)
+        {
+            uint x1 = (BlowfishConstants.sbox[0, wordByte0(b)] + BlowfishConstants.sbox[1, wordByte1(b)]) ^ BlowfishConstants.sbox[2,wordByte2(b)];
+            uint x2 = x1 + BlowfishConstants.sbox[3, this.wordByte3(b)];
+            uint x3 = x2 ^ Key;
+
+            return x3 ^ a;
+        }
+
+        //gets the first byte in a uint
+        private byte wordByte0(uint w)
+        {
+            return (byte)(w / 256 / 256 / 256 % 256);
+        }
+
+        //gets the second byte in a uint
+        private byte wordByte1(uint w)
+        {
+            return (byte)(w / 256 / 256 % 256);
+        }
+
+        //gets the third byte in a uint
+        private byte wordByte2(uint w)
+        {
+            return (byte)(w / 256 % 256);
+        }
+
+        //gets the fourth byte in a uint
+        private byte wordByte3(uint w)
+        {
+            return (byte)(w % 256);
         }
 
         UInt64 DecryptBlock(UInt64 Data, KeySchedule Schedule)
@@ -96,7 +140,6 @@ namespace Blowfish
             for (int i = 17; i > 1; i--)
             {
                 Data = Round(Data, Schedule.Get(i));
-                //Console.WriteLine("After round " + (i + 1) + ": \n" + UInt64ToByteString(Data));
             }
 
             // Undo the last swap.
@@ -172,11 +215,6 @@ namespace Blowfish
             uint c = (0x0000FF00 & value) >> 8;
             uint d = 0x000000FF & value;
 
-            //Console.WriteLine("S1," + a + " = " + UInt32ToByteString(BlowfishConstants.sbox[0, a]));
-            //Console.WriteLine("S2," + b + " = " + UInt32ToByteString(BlowfishConstants.sbox[1, b]));
-            //Console.WriteLine("S3," + c + " = " + UInt32ToByteString(BlowfishConstants.sbox[2, c]));
-            //Console.WriteLine("S4," + d + " = " + UInt32ToByteString(BlowfishConstants.sbox[3, d]));
-
             UInt32 sum1 = BlowfishConstants.sbox[0, a] + BlowfishConstants.sbox[1, b];
             UInt32 sum2 = sum1 ^ BlowfishConstants.sbox[2, c];
             UInt32 sum3 = sum2 + BlowfishConstants.sbox[3, d];
@@ -188,29 +226,15 @@ namespace Blowfish
         /// The round 
         /// </summary>
         /// <param name="data"></param>
-        UInt64 Round(UInt64 data, UInt32 RoundKey)
+        UInt64 Round(UInt64 Data, UInt32 RoundKey)
         {
-            String Sep = "=============================";
-            //Console.WriteLine(Sep + "\nBeginning round on input: " + UInt64ToByteString(data));
-            //Console.WriteLine("Key: " + UInt32ToByteString(RoundKey));
-            UInt32 leftHalf = Left(data);
-            UInt32 rightHalf = Right(data);
+            UInt32 xL = Left(Data);
+            UInt32 xR = Right(Data);
 
-            //Console.WriteLine("xL = " + UInt32ToByteString(leftHalf));
-            //Console.WriteLine("xR = " + UInt32ToByteString(rightHalf));
+            xL ^= RoundKey;
+            xR ^= F(xL);
 
-            leftHalf ^= RoundKey;
-
-            //Console.WriteLine("xL = xL XOR Pi = " + UInt32ToByteString(leftHalf));
-            //Console.WriteLine("F(xL) = " + UInt32ToByteString(F(leftHalf)));
-
-            rightHalf ^= F(leftHalf);
-
-            //Console.WriteLine("xR = F(xL) ^ xR = " + UInt32ToByteString(rightHalf));
-
-            UInt64 output = Combine(rightHalf, leftHalf);
-
-            //Console.WriteLine("OUTPUT: " + UInt64ToByteString(output) + ".\n" + Sep);
+            UInt64 output = Combine(xR, xL);
 
             return output;
         }

@@ -6,37 +6,56 @@ using System.Threading.Tasks;
 
 namespace Blowfish
 {
-    class Key : ByteBlock
+    public class BlowfishKey
     {
         /// <summary>
-        /// Constructor.
+        /// An array of bytes that make up the key.
         /// </summary>
-        /// <param name="Size"></param>
-        public Key(int Size) : base(Size)
+        public byte[] keyBytes;
+
+        /// <summary>
+        /// Read-only property for key length.
+        /// </summary>
+        public int Length
         {
-            if (Size < 32) throw new ArgumentException("Keys can be no smaller than 32 bits in length.");
-            if (Size > 448) throw new ArgumentException("Keys can be no greater than 448 bits in length.");
-            if (Size % 32 != 0) throw new ArgumentException("Keys must be of a length divisible by 32.");
+            get
+            {
+                return keyBytes.Length;
+            }
         }
         
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="data"></param>
-        public Key(byte[] Data)
-            : this(Data.Length)
+        public BlowfishKey(byte[] Data)
         {
-            Array.Copy(Data, this.Data, Data.Length);
+            ValidateLength(Data.Length);
+
+            keyBytes = new byte[Data.Length];
+            Array.Copy(Data, keyBytes, Length);
         }
 
         /// <summary>
-        /// Copy constructor.
+        /// Constructor via hex string.
         /// </summary>
-        /// <param name="other"></param>
-        public Key(Key other)
-            : base(other)
+        /// <param name="hexString"></param>
+        public BlowfishKey(String hexString)
         {
+            ValidateLength(hexString.Length / 2);
+            keyBytes = ByteOperations.ConvertHexStringToByteArray(hexString);
+        }
 
+        /// <summary>
+        /// Throw exception if the provided key length is not valid for Blowfish. Valid
+        /// keys must be between 32 and 448 bits.
+        /// </summary>
+        /// <param name="length">Size in bytes</param>
+        private void ValidateLength(int length)
+        {
+            if (length < 4) throw new ArgumentException("Keys can be no smaller than 32 bits in length.");
+            if (length > 56) throw new ArgumentException("Keys can be no greater than 448 bits in length.");
+            if (length % 4 != 0) throw new ArgumentException("Keys must be of a length divisible by 32 bits.");
         }
     }
 }
