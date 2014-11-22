@@ -14,6 +14,7 @@ namespace Blowfish.KeyGeneration
         /// An array of bytes that make up the key.
         /// </summary>
         public byte[] keyBytes;
+        private ulong p;
 
         /// <summary>
         /// Read-only property for key length.
@@ -45,6 +46,16 @@ namespace Blowfish.KeyGeneration
         {
             keyBytes = ByteOperations.ConvertHexStringToByteArray(hexString);
             ValidateLength(hexString.Length / 2);
+        }
+
+        /// <summary>
+        /// Initialize blowfish key from 64 bit integer.
+        /// </summary>
+        /// <param name="p"></param>
+        public BlowfishKey(UInt64 key)
+            : this(String.Format("{0:X16}", key))
+        {
+            ValidateLength(8);
         }
 
         /// <summary>

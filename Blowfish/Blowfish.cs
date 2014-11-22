@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Security.Cryptography;
+
 using Blowfish.Exceptions;
 using Blowfish.KeyGeneration;
 
@@ -13,7 +15,7 @@ namespace Blowfish
     /// An engine object that will drive all encryption activities. This is the public
     /// API for the assembly.
     /// </summary>
-    public class Blowfish
+    public class Blowfish : SymmetricAlgorithm
     {
         /// <summary>
         /// The context of precomputed s-boxes and schedule for each key used. The engine
@@ -31,11 +33,21 @@ namespace Blowfish
         }
 
         /// <summary>
+        /// Constructor via byte array for key.
+        /// </summary>
+        /// <param name="key"></param>
+        public Blowfish(byte[] key)
+        {
+            var Key = new BlowfishKey(key);
+            Context = new BlowfishContext(Key);
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        public Blowfish(BlowfishKey newKey)
+        public Blowfish(BlowfishKey key)
         {
-            Context = new BlowfishContext(newKey);
+            Context = new BlowfishContext(key);
         }
 
         /// <summary>
@@ -50,9 +62,18 @@ namespace Blowfish
             }
 
             UInt64[] plain64 = ByteOperations.PackBytesIntoUInt64(Plaintext);
-            UInt64 Final = BlowfishEngine.EncryptBlock(ByteOperations.Swap(plain64[0]), Context.Schedule);
 
-            return Final;
+            return Encrypt(plain64[0]);
+        }
+
+        /// <summary>
+        /// Encrypt a single 64-bit piece of data with no chaining.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public UInt64 Encrypt(UInt64 data)
+        {
+            return BlowfishEngine.EncryptBlock(ByteOperations.Swap(data), Context);
         }
 
         /// <summary>
@@ -64,30 +85,34 @@ namespace Blowfish
             Context = new BlowfishContext(key);
         }
 
-        //UInt64 DecryptBlock(UInt64 Data, KeySchedule Schedule)
-        //{
-        //    for (int i = 17; i > 1; i--)
-        //    {
-        //        Data = Round(Data, Schedule.Get(i));
-        //    }
-
-        //    // Undo the last swap.
-        //    UInt32 leftHalf = ByteOperations.Right(Data) ^ Schedule.Get(1);
-        //    UInt32 rightHalf = ByteOperations.Left(Data) ^ Schedule.Get(0);
-
-        //    return ByteOperations.Combine(leftHalf, rightHalf);
-        //}
-
-        String UInt64ToByteString(UInt64 value)
+        /// <summary>
+        /// Assigns the given key to the engine and computes the schedule.
+        /// </summary>
+        /// <param name="key"></param>
+        public void SetKey(byte[] key)
         {
-            return String.Format("0x{0:X16}", value);
+            BlowfishKey Key = new BlowfishKey(key);
+            Context = new BlowfishContext(Key);
         }
 
-        String UInt32ToByteString(UInt32 value)
+        public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            return String.Format("0x{0:X8}", value);
+            throw new NotImplementedException();
         }
 
+        public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
+        {
+            throw new NotImplementedException();
+        }
 
+        public override void GenerateIV()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void GenerateKey()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

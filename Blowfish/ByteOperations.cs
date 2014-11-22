@@ -93,5 +93,25 @@ namespace Blowfish
         {
             return Combine(Right(value), Left(value));
         }
+
+        /// <summary>
+        /// Formats the 64-bit integer as a hex string.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public String UInt64ToByteString(UInt64 value)
+        {
+            return String.Format("0x{0:X16}", value);
+        }
+
+        /// <summary>
+        /// Formats the 32-bit integer as a hex string.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public String UInt32ToByteString(UInt32 value)
+        {
+            return String.Format("0x{0:X8}", value);
+        }
     }
 }

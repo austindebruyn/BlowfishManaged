@@ -19,19 +19,12 @@ namespace Blowfish.KeyGeneration
         /// <summary>
         /// The keys for each round of the algorithm.
         /// </summary>
-        public KeySchedule Schedule;
+        public KeySchedule Schedule { get; private set; }
 
         /// <summary>
         /// The s-boxes.
         /// </summary>
         public UInt32[,] sbox;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public BlowfishContext()
-        {
-        }
 
         /// <summary>
         /// Constructor via Key.
@@ -57,7 +50,7 @@ namespace Blowfish.KeyGeneration
             // To set up the schedule (p-arrays), 
             for (int i = 0; i < 9; i++)
             {
-                bitScape = BlowfishEngine.EncryptBlock(bitScape, Schedule);
+                bitScape = BlowfishEngine.EncryptBlock(bitScape, this);
                 Schedule.Set(i * 2, ByteOperations.Left(bitScape));
                 Schedule.Set(i * 2 + 1, ByteOperations.Right(bitScape));
                 bitScape = ByteOperations.Swap(bitScape);
@@ -66,11 +59,11 @@ namespace Blowfish.KeyGeneration
             // To finish the s-boxes
             for (int i = 0; i < 1024; )
             {
-                bitScape = BlowfishEngine.EncryptBlock(bitScape, Schedule);
+                bitScape = BlowfishEngine.EncryptBlock(bitScape, this);
 
-                BlowfishConstants.sbox[i / 256, i % 256] = ByteOperations.Left(bitScape);
+                sbox[i / 256, i % 256] = ByteOperations.Left(bitScape);
                 i++;
-                BlowfishConstants.sbox[i / 256, i % 256] = ByteOperations.Right(bitScape);
+                sbox[i / 256, i % 256] = ByteOperations.Right(bitScape);
                 i++;
 
                 bitScape = ByteOperations.Swap(bitScape);

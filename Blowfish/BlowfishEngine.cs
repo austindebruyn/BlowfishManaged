@@ -14,82 +14,51 @@ namespace Blowfish
         /// Encrypts a single block, running the 64 bits of data through all 16
         /// rounds of the Blowfish algorithm. Returns the encrypted 64 bits.
         /// </summary>
-        /// <param name="Data"></param>
+        /// <param name="block64"></param>
         /// <param name="Schedule"></param>
         /// <returns></returns>
-        public static UInt64 EncryptBlock(UInt64 Data, KeySchedule Schedule)
+        public static UInt64 EncryptBlock(UInt64 block64, BlowfishContext Context)
         {
-            UInt32 xl_par = ByteOperations.Right(Data);
-            UInt32 xr_par = ByteOperations.Left(Data);
+            UInt32 left32 = ByteOperations.Right(block64);
+            UInt32 right32 = ByteOperations.Left(block64);
 
-            xl_par ^= Schedule.Get(0);
+            // We unrolled the Feistel loop, so the very first key XOR happens
+            // outside the loop here.
+            left32 ^= Context.Schedule.Get(0);
+
+            // 16 iterations of the Round function.
             for (int i = 0; i < 16; i += 2)
             {
-                xr_par = round(xr_par, xl_par, Schedule.Get(i + 1));
-                xl_par = round(xl_par, xr_par, Schedule.Get(i + 2));
+                right32 = Round(right32, left32, Context.Schedule.Get(i + 1), Context);
+                left32 = Round(left32, right32, Context.Schedule.Get(i + 2), Context);
             }
-            xr_par = xr_par ^ Schedule.Get(17);
 
-            //swap the blocks
-            uint swap = xl_par;
-            xl_par = xr_par;
-            xr_par = swap;
+            // Finalize the loop unrolling.
+            right32 = right32 ^ Context.Schedule.Get(17);
 
-            return ByteOperations.Combine(xl_par, xr_par);
+            return ByteOperations.Combine(right32, left32);
         }
 
         /// <summary>
-        /// The function that powers the Feistel network.
+        /// This performs Schneier's round function for Blowfish, which consists of swapping
+        /// the left and right halves, and swapping bytes from the s-box.
         /// </summary>
+        /// <param name="leftHalf"></param>
         /// <param name="rightHalf"></param>
+        /// <param name="Key"></param>
         /// <returns></returns>
-        //UInt32 F(UInt32 value)
-        //{
-
-
-        //    UInt32 sum1 = BlowfishConstants.sbox[0, a] + BlowfishConstants.sbox[1, b];
-        //    UInt32 sum2 = sum1 ^ BlowfishConstants.sbox[2, c];
-        //    UInt32 sum3 = sum2 + BlowfishConstants.sbox[3, d];
-
-        //    return sum3;
-        //}
-
-        private static UInt32 round(UInt32 leftHalf, UInt32 rightHalf, UInt32 Key)
+        private static UInt32 Round(UInt32 leftHalf, UInt32 rightHalf, UInt32 Key, BlowfishContext Context)
         {
             uint a = (0xFF000000 & rightHalf) >> 24;
             uint b = (0x00FF0000 & rightHalf) >> 16;
             uint c = (0x0000FF00 & rightHalf) >> 8;
             uint d = 0x000000FF & rightHalf;
 
-            uint x1 = (BlowfishConstants.sbox[0, a] + BlowfishConstants.sbox[1, b]) ^ BlowfishConstants.sbox[2,c];
-            uint x2 = x1 + BlowfishConstants.sbox[3, d];
+            uint x1 = (Context.sbox[0, a] + Context.sbox[1, b]) ^ Context.sbox[2, c];
+            uint x2 = x1 + Context.sbox[3, d];
             uint x3 = x2 ^ Key;
 
             return x3 ^ leftHalf;
-        }
-
-        //gets the first byte in a uint
-        private static byte wordByte0(uint w)
-        {
-            return (byte)(w / 256 / 256 / 256 % 256);
-        }
-
-        //gets the second byte in a uint
-        private static byte wordByte1(uint w)
-        {
-            return (byte)(w / 256 / 256 % 256);
-        }
-
-        //gets the third byte in a uint
-        private static byte wordByte2(uint w)
-        {
-            return (byte)(w / 256 % 256);
-        }
-
-        //gets the fourth byte in a uint
-        private static byte wordByte3(uint w)
-        {
-            return (byte)(w % 256);
         }
     }
 }

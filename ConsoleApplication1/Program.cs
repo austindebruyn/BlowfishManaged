@@ -15,17 +15,18 @@ namespace ConsoleApplication1
         static void Main(string[] args)
         {
             byte[] plain = new byte[] { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
-
+            byte[] kk = new byte[] { 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
             Console.WriteLine("My implementation: ");
             Stopwatch sw = new Stopwatch();
             sw.Start();
                         Blowfish.Blowfish engine = new Blowfish.Blowfish();
-                        Blowfish.KeyGeneration.BlowfishKey Key = new Blowfish.KeyGeneration.BlowfishKey("3000000000000000");
+                        Blowfish.KeyGeneration.BlowfishKey Key = new Blowfish.KeyGeneration.BlowfishKey(kk);
                         engine.SetKey(Key);
                         for (int i = 0; i < 1048576; i++)
                         {
-                            engine.Encrypt(plain);
+                            Console.WriteLine(String.Format("0x{0:X16}", engine.Encrypt(plain)));
+                            Console.ReadLine();
                         }
             sw.Stop();
             long microseconds = sw.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L));
