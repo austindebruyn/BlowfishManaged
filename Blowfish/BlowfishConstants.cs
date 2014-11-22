@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Blowfish
 {
-    class BlowfishConstants
+    internal class BlowfishConstants
     {
         /// <summary>
         /// These values are constructed from the hexadecimal digits of pi. This is done as a "nothing

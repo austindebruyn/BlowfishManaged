@@ -40,10 +40,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlowfishEngine.cs" />
+    <Compile Include="KeyGeneration\BlowfishContext.cs" />
+    <Compile Include="Blowfish.cs" />
     <Compile Include="BlowfishConstants.cs" />
     <Compile Include="ByteOperations.cs" />
-    <Compile Include="Key.cs" />
-    <Compile Include="KeySchedule.cs" />
+    <Compile Include="Exceptions\InvalidKeyException.cs" />
+    <Compile Include="Exceptions\MissingKeyException.cs" />
+    <Compile Include="KeyGeneration\Key.cs" />
+    <Compile Include="KeyGeneration\KeySchedule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

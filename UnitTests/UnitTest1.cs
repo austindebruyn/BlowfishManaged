@@ -9,7 +9,7 @@ namespace UnitTests
         [TestMethod]
         public void TestMethod1()
         {
-            Assert.IsTrue(Blowfish.BlowfishEngine.hello.Equals("Hello world"));
+            Assert.IsTrue(Blowfish.Blowfish.hello.Equals("Hello world"));
         }
     }
 }

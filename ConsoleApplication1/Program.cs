@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
-
 using System.Diagnostics;
+
+using Blowfish;
 
 namespace ConsoleApplication1
 {
@@ -20,8 +20,8 @@ namespace ConsoleApplication1
             Console.WriteLine("My implementation: ");
             Stopwatch sw = new Stopwatch();
             sw.Start();
-                        Blowfish.BlowfishEngine engine = new Blowfish.BlowfishEngine();
-                        Blowfish.BlowfishKey Key = new Blowfish.BlowfishKey("49793EBC79B3258F");
+                        Blowfish.Blowfish engine = new Blowfish.Blowfish();
+                        Blowfish.KeyGeneration.BlowfishKey Key = new Blowfish.KeyGeneration.BlowfishKey("3000000000000000");
                         engine.SetKey(Key);
                         for (int i = 0; i < 1048576; i++)
                         {
