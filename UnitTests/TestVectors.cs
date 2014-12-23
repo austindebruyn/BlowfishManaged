@@ -4,10 +4,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace UnitTests
 {
     [TestClass]
-    public class UnitTest1
+    public class TestVectors
     {
         [TestMethod]
-        public void TestMethod1()
+        public void it_matches_all_tests_vectors()
         {
             UInt64[,] testVectors =
             {
@@ -47,13 +47,17 @@ namespace UnitTests
                 { 0xFEDCBA9876543210, 0xFFFFFFFFFFFFFFFF, 0x6B5C5A9C5D9E0A5A }
             };
 
-            Blowfish.Blowfish blowfish = new Blowfish.Blowfish();
+            AustinXYZ.BlowfishManaged blowfish = new AustinXYZ.BlowfishManaged();
             int count = testVectors.GetLength(0);
             for (int i = 0; i < count; i++)
             {
-                Blowfish.KeyGeneration.BlowfishKey Key = new Blowfish.KeyGeneration.BlowfishKey(testVectors[i, 0]);
-                blowfish.SetKey(Key);
+                // Pack 64-bit integer into a byte array in big-endian mode.
+                UInt64 key64 = testVectors[i, 0];
+                byte[] keyBytes = new byte[8];
+                for (int j = 0; j < keyBytes.Length; j++) keyBytes[j] = (byte)((key64 >> (7 - j) * 8) & (UInt64)(0xFF));
 
+                // Assign key and encrypt.
+                blowfish.Key = keyBytes;
                 UInt64 encrypted = blowfish.Encrypt(testVectors[i, 1]);
 
                 String errorMessage = String.Format("Expected: 0x{0:X16} Actual: 0x{1:X16}", testVectors[i, 2], encrypted);

@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blowfish.KeyGeneration
+namespace AustinXYZ.KeyGeneration
 {
     /// <summary>
     /// Internal class to represent a full round of keys.
     /// </summary>
-    class KeySchedule
+    public class KeySchedule
     {
         /// <summary>
         /// The original key that generated the schedule.
@@ -24,11 +24,11 @@ namespace Blowfish.KeyGeneration
         /// <summary>
         /// Constructor.
         /// </summary>
-        public KeySchedule(BlowfishKey Key)
+        public KeySchedule(byte[] Key)
         {
             // Deep copy the reference.
             Original = new byte[Key.Length];
-            Array.Copy(Key.keyBytes, Original, Original.Length);
+            Array.Copy(Key, Original, Original.Length);
             
             Generate();
         }

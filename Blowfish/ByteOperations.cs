@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blowfish
+namespace AustinXYZ
 {
     internal class ByteOperations
     {
@@ -35,18 +35,13 @@ namespace Blowfish
         /// </summary>
         /// <param name="Data"></param>
         /// <returns></returns>
-        public static UInt64[] PackBytesIntoUInt64(Byte[] Data)
+        public static UInt64 PackBytesIntoUInt64(Byte[] Data, int offset = 0)
         {
-            UInt64[] newData = new UInt64[Data.Length / 8];
+            UInt64 newData = 0;
 
-            for (int i = 0; i < newData.Length; i++)
+            for (int j = 0; j < 8; j++)
             {
-                newData[i] = 0;
-                for (int j = 0; j < 8; j++)
-                {
-                    newData[i] |= ((UInt64)Data[i * 8 + j] << ((7 - j) * 8));
-                    //Console.WriteLine("newData[" + i + "]: " + UInt64ToByteString(newData[i]));
-                }
+                newData |= ((UInt64)Data[offset + j] << ((7 - j) * 8));
             }
 
             return newData;

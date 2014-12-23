@@ -50,8 +50,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="TestVectors.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ImplementsAbstractAlgorithm.cs" />
+    <Compile Include="IdentityTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Blowfish\Blowfish.csproj">

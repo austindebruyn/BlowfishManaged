@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Blowfish.KeyGeneration
+namespace AustinXYZ.KeyGeneration
 {
     /// <summary>
     /// The context encapsulates a number of runtime data structures used during encryption.
@@ -14,7 +14,7 @@ namespace Blowfish.KeyGeneration
     /// This context is computed once per key. To change key, discard this instance and construct
     /// a new key. The Blowfish algorithm was not designed with rapidly changing keys in mind.
     /// </summary>
-    class BlowfishContext
+    public class BlowfishContext
     {
         /// <summary>
         /// The keys for each round of the algorithm.
@@ -29,7 +29,7 @@ namespace Blowfish.KeyGeneration
         /// <summary>
         /// Constructor via Key.
         /// </summary>
-        public BlowfishContext(BlowfishKey Key) : base()
+        public BlowfishContext(byte[] Key) : base()
         {
             sbox = new UInt32[4, 256];
             Array.Copy(BlowfishConstants.sbox, sbox, BlowfishConstants.sbox.LongLength);

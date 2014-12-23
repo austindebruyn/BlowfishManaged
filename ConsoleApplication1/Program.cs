@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 using System.Diagnostics;
 
-using Blowfish;
+using AustinXYZ;
+using System.Security.Cryptography;
+using System.IO;
 
 namespace ConsoleApplication1
 {
@@ -14,37 +16,25 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            byte[] plain = new byte[] { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
-            byte[] kk = new byte[] { 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
 
-            Console.WriteLine("My implementation: ");
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-                        Blowfish.Blowfish engine = new Blowfish.Blowfish();
-                        Blowfish.KeyGeneration.BlowfishKey Key = new Blowfish.KeyGeneration.BlowfishKey(kk);
-                        engine.SetKey(Key);
-                        for (int i = 0; i < 1048576; i++)
-                        {
-                            Console.WriteLine(String.Format("0x{0:X16}", engine.Encrypt(plain)));
-                            Console.ReadLine();
-                        }
-            sw.Stop();
-            long microseconds = sw.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L));
-            Console.WriteLine("Encrypted 64MB in " + microseconds + "micros.\n");
+            byte[] plain = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            byte[] kk = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            byte[] enc = new byte[8];
+            byte[] dec = new byte[8];
+
+            blowfish.Key = kk;
+            ICryptoTransform transform = blowfish.CreateEncryptor();
+
+            transform.TransformBlock(plain, 0, 8, enc, 0);
+
+            Console.WriteLine(String.Format("Encrypted: {0}", BitConverter.ToString(enc)));
 
 
-            Console.WriteLine("FireXware's implementation: ");
-            sw = new Stopwatch();
-            sw.Start();
-                        BlowFishCS.BlowFish b = new BlowFishCS.BlowFish("3000000000000000");
-                        for (int i = 0; i < 1048576; i++)
-                        {
-                            b.Encrypt_ECB(plain);
-                        }
-            sw.Stop();
-            microseconds = sw.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L));
-            Console.WriteLine("Encrypted 64MB in " + microseconds + "micros.");
+            ICryptoTransform dtransform = blowfish.CreateDecryptor();
+            dtransform.TransformBlock(enc, 0, 8, dec, 0);
 
+            Console.WriteLine(String.Format("Decrypted: {0}", BitConverter.ToString(dec)));
             Console.ReadLine();
         }
     }

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Blowfish.KeyGeneration;
+using AustinXYZ.KeyGeneration;
 
-namespace Blowfish
+namespace AustinXYZ
 {
     internal class BlowfishEngine
     {
@@ -35,6 +35,35 @@ namespace Blowfish
 
             // Finalize the loop unrolling.
             right32 = right32 ^ Context.Schedule.Get(17);
+
+            return ByteOperations.Combine(right32, left32);
+        }
+
+        /// <summary>
+        /// Decrypts a single block, running the 64 bits of data through all 16
+        /// rounds of the Blowfish algorithm. Returns the decrypted 64 bits.
+        /// </summary>
+        /// <param name="block64"></param>
+        /// <param name="Schedule"></param>
+        /// <returns></returns>
+        public static UInt64 DecryptBlock(UInt64 block64, BlowfishContext Context)
+        {
+            UInt32 left32 = ByteOperations.Right(block64);
+            UInt32 right32 = ByteOperations.Left(block64);
+
+            // We unrolled the Feistel loop, so the very first key XOR happens
+            // outside the loop here.
+            left32 ^= Context.Schedule.Get(17);
+
+            // 16 iterations of the Round function.
+            for (int i = 15; i >= 0; i -= 2)
+            {
+                right32 = Round(right32, left32, Context.Schedule.Get(i + 1), Context);
+                left32 = Round(left32, right32, Context.Schedule.Get(i), Context);
+            }
+
+            // Finalize the loop unrolling.
+            right32 = right32 ^ Context.Schedule.Get(0);
 
             return ByteOperations.Combine(right32, left32);
         }
