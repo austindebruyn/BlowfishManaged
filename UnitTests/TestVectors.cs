@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Security.Cryptography;
 
 namespace UnitTests
 {
@@ -47,21 +48,27 @@ namespace UnitTests
                 { 0xFEDCBA9876543210, 0xFFFFFFFFFFFFFFFF, 0x6B5C5A9C5D9E0A5A }
             };
 
-            AustinXYZ.BlowfishManaged blowfish = new AustinXYZ.BlowfishManaged();
             int count = testVectors.GetLength(0);
+
             for (int i = 0; i < count; i++)
             {
-                // Pack 64-bit integer into a byte array in big-endian mode.
-                UInt64 key64 = testVectors[i, 0];
-                byte[] keyBytes = new byte[8];
-                for (int j = 0; j < keyBytes.Length; j++) keyBytes[j] = (byte)((key64 >> (7 - j) * 8) & (UInt64)(0xFF));
+                // To test each vector, which is given above as a hexadecimal string, we'll unpack the three
+                // vectors into byte arrays.
+                byte[] Key = ByteOperations.UnpackUInt64IntoBytes(testVectors[i, 0]);
+                byte[] Cleartext = ByteOperations.UnpackUInt64IntoBytes(testVectors[i, 1]);
+                byte[] Expected = ByteOperations.UnpackUInt64IntoBytes(testVectors[i, 2]);
 
-                // Assign key and encrypt.
-                blowfish.Key = keyBytes;
-                UInt64 encrypted = blowfish.Encrypt(testVectors[i, 1]);
+                AustinXYZ.BlowfishManaged blowfish = new AustinXYZ.BlowfishManaged();
+                blowfish.Key = Key;
+                blowfish.Mode = CipherMode.ECB;
+                ICryptoTransform transform = blowfish.CreateEncryptor();
+                byte[] Actual = transform.TransformFinalBlock(Cleartext, 0, 8);
 
-                String errorMessage = String.Format("Expected: 0x{0:X16} Actual: 0x{1:X16}", testVectors[i, 2], encrypted);
-                Assert.AreEqual<UInt64>(testVectors[i, 2], encrypted, errorMessage);
+                String errorMessage = String.Format("Expected: 0x{0} Actual: 0x{1}",
+                    BitConverter.ToString(Expected),
+                    BitConverter.ToString(Actual));
+
+                CollectionAssert.AreEqual(Expected, Actual, errorMessage);
             }
         }
     }

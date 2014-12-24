@@ -45,12 +45,12 @@ namespace AustinXYZ.KeyGeneration
         void Setup()
         {
             // The setup process starts with the all zero string.
-            UInt64 bitScape = 0x0000000000000000;
+            UInt64 bitScape = 0;
 
             // To set up the schedule (p-arrays), 
             for (int i = 0; i < 9; i++)
             {
-                bitScape = BlowfishEngine.EncryptBlock(bitScape, this);
+                bitScape = BlowfishEngine.Encrypt(ByteOperations.Swap(bitScape), this);
                 Schedule.Set(i * 2, ByteOperations.Left(bitScape));
                 Schedule.Set(i * 2 + 1, ByteOperations.Right(bitScape));
                 bitScape = ByteOperations.Swap(bitScape);
@@ -59,7 +59,7 @@ namespace AustinXYZ.KeyGeneration
             // To finish the s-boxes
             for (int i = 0; i < 1024; )
             {
-                bitScape = BlowfishEngine.EncryptBlock(bitScape, this);
+                bitScape = BlowfishEngine.Encrypt(ByteOperations.Swap(bitScape), this);
 
                 sbox[i / 256, i % 256] = ByteOperations.Left(bitScape);
                 i++;

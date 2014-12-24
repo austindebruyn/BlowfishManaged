@@ -16,25 +16,56 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
+            var AAA = new AesManaged();
+            var aesenc = AAA.CreateEncryptor();
+            var aesdec = AAA.CreateDecryptor();
+            byte[] plaintext = new byte[16];
+            byte[] encrypted;
+            byte[] decrypted = new byte[16];
+
+            for (int i = 0; i < plaintext.Length; i++) plaintext[i] = 10;
+            Console.WriteLine("Plaintext bytes: {0}.", BitConverter.ToString(plaintext));
+
             SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            blowfish.GenerateKey();
+            blowfish.GenerateIV();
+            blowfish.Mode = CipherMode.CBC;
 
-            byte[] plain = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-            byte[] kk = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-            byte[] enc = new byte[8];
-            byte[] dec = new byte[8];
+            Console.WriteLine("Key: {0}.", BitConverter.ToString(blowfish.Key));
+            Console.WriteLine("IV: {0}.", BitConverter.ToString(blowfish.IV));
+            Console.WriteLine("Cipher Mode: {0}.", blowfish.Mode);
+            Console.WriteLine("");
 
-            blowfish.Key = kk;
-            ICryptoTransform transform = blowfish.CreateEncryptor();
+            // Stream all plaintext bytes through the blowfish encryptor.
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, blowfish.CreateEncryptor(), CryptoStreamMode.Write))
+                    cryptoStream.Write(plaintext, 0, plaintext.Length);
+                encrypted = memoryStream.GetBuffer();
+            }
 
-            transform.TransformBlock(plain, 0, 8, enc, 0);
+            // Make sure that CBC is properly subtituting. If CBC used the IV correctly, the second block should
+            // be much different from the first, even though the source input block was the same for both.
+            int BlockSize = blowfish.BlockSize / 8;
+            byte[] FirstBlock = new byte[BlockSize];
+            byte[] SecondBlock = new byte[BlockSize];
+            Array.Copy(encrypted, 0, FirstBlock, 0, BlockSize);
+            Array.Copy(encrypted, BlockSize, SecondBlock, 0, BlockSize);
 
-            Console.WriteLine(String.Format("Encrypted: {0}", BitConverter.ToString(enc)));
+            if (FirstBlock.SequenceEqual<byte>(SecondBlock))
+                Console.WriteLine("First and second block are EQUAL.");
+            else
+                Console.WriteLine("First and second blocks are NOT EQUAL - CBC worked.");
 
+            // Stream all ciphertext bytes through the blowfish decryptor.
+            using (MemoryStream memoryStream = new MemoryStream(encrypted))
+            using (CryptoStream cryptoStream = new CryptoStream(memoryStream, blowfish.CreateDecryptor(), CryptoStreamMode.Read))
+            {
+                int bytesRead = cryptoStream.Read(decrypted, 0, decrypted.Length);
+            }
 
-            ICryptoTransform dtransform = blowfish.CreateDecryptor();
-            dtransform.TransformBlock(enc, 0, 8, dec, 0);
+            Console.WriteLine("\nDecrypted bytes: {0}.", BitConverter.ToString(decrypted));
 
-            Console.WriteLine(String.Format("Decrypted: {0}", BitConverter.ToString(dec)));
             Console.ReadLine();
         }
     }

@@ -41,9 +41,25 @@ namespace AustinXYZ
         }
 
         /// <summary>
+        /// Gets or sets the mode for operation of the symmetric algorithm.
+        /// </summary>
+        public override CipherMode Mode
+        {
+            get
+            {
+                return base.Mode;
+            }
+            set
+            {
+                if (value != CipherMode.ECB) throw new CryptographicException("Invalid cipher mode.");
+                base.Mode = value;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the secret key used for the symmetric algorithm.
         /// </summary>
-        public override byte[] Key
+        public new byte[] Key
         {
             get
             {
@@ -53,6 +69,22 @@ namespace AustinXYZ
             {
                 base.Key = value;
                 Context = null;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the initialization vector used for the symmetric algorithm.
+        /// </summary>
+        public override byte[] IV
+        {
+            get
+            {
+                return base.IVValue;
+            }
+            set
+            {
+                if (value.Length != BlockSize / 8) throw new CryptographicException("IV must be equal to the block size!");
+                base.IVValue = value;
             }
         }
 
@@ -96,6 +128,7 @@ namespace AustinXYZ
         public BlowfishManaged() : base()
         {
             BlockSize = 64;
+            Mode = CipherMode.ECB;
         }
 
         /// <summary>
@@ -106,34 +139,6 @@ namespace AustinXYZ
         {
             Key = key;
             Context = new BlowfishContext(Key);
-        }
-
-        /// <summary>
-        /// Encrypt block of text.
-        /// </summary>
-        /// <param name="Plaintext"></param>
-        public UInt64 Encrypt(byte[] Plaintext)
-        {
-            if (Context == null)
-            {
-                throw new InvalidOperationException("No key was set for the engine. Set a key before encrypting.");
-            }
-
-            UInt64 plain64 = ByteOperations.PackBytesIntoUInt64(Plaintext);
-
-            return Encrypt(plain64);
-        }
-
-        /// <summary>
-        /// Encrypt a single 64-bit piece of data with no chaining.
-        /// </summary>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        public UInt64 Encrypt(UInt64 data)
-        {
-            if (Context == null) Context = new BlowfishContext(Key);
-
-            return BlowfishEngine.EncryptBlock(ByteOperations.Swap(data), Context);
         }
 
         /// <summary>
@@ -156,7 +161,7 @@ namespace AustinXYZ
                 encryptionContext = new BlowfishContext(rgbKey);
             }
 
-            return new BlowfishManagedTransform(encryptionContext);
+            return new BlowfishManagedTransform(encryptionContext, Mode, BlowfishManagedTransformMode.Encrypt);
         }
 
         /// <summary>
@@ -179,7 +184,33 @@ namespace AustinXYZ
                 encryptionContext = new BlowfishContext(rgbKey);
             }
 
-            return new BlowfishManagedTransform(encryptionContext, false);
+            return new BlowfishManagedTransform(encryptionContext, Mode, BlowfishManagedTransformMode.Decrypt);
+        }
+
+        /// <summary>
+        /// Encrypts a single block, running the 64 bits of data through all 16
+        /// rounds of the Blowfish algorithm. Returns the encrypted 64 bits.
+        /// </summary>
+        /// <param name="block64"></param>
+        /// <param name="Schedule"></param>
+        /// <returns></returns>
+        public UInt64 EncryptSingleBlock(UInt64 block64)
+        {
+            if (Context == null) Context = new BlowfishContext(Key);
+            return BlowfishEngine.Encrypt(block64, Context);
+        }
+
+        /// <summary>
+        /// Decrypts a single block, running the 64 bits of data through all 16
+        /// rounds of the Blowfish algorithm. Returns the decrypted 64 bits.
+        /// </summary>
+        /// <param name="block64"></param>
+        /// <param name="Schedule"></param>
+        /// <returns></returns>
+        public UInt64 DecryptSingleBlock(UInt64 block64)
+        {
+            if (Context == null) Context = new BlowfishContext(Key);
+            return BlowfishEngine.Decrypt(block64, Context);
         }
 
         /// <summary>
@@ -188,8 +219,7 @@ namespace AustinXYZ
         public override void GenerateIV()
         {
             IV = new byte[BlockSize / 8];
-            Random rand = new Random();
-            rand.NextBytes(IV);
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider()) rng.GetBytes(IV);
         }
 
         /// <summary>
@@ -197,9 +227,9 @@ namespace AustinXYZ
         /// </summary>
         public override void GenerateKey()
         {
-            Key = new byte[8];
-            Random rand = new Random();
-            rand.NextBytes(Key);
+            int keySize = new Random().Next(1, 56);
+            Key = new byte[keySize];
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider()) rng.GetBytes(Key);
         }
     }
 }

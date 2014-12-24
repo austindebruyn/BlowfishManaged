@@ -17,10 +17,10 @@ namespace AustinXYZ
         /// <param name="block64"></param>
         /// <param name="Schedule"></param>
         /// <returns></returns>
-        public static UInt64 EncryptBlock(UInt64 block64, BlowfishContext Context)
+        public static UInt64 Encrypt(UInt64 block64, BlowfishContext Context)
         {
-            UInt32 left32 = ByteOperations.Right(block64);
-            UInt32 right32 = ByteOperations.Left(block64);
+            UInt32 left32 = ByteOperations.Left(block64);
+            UInt32 right32 = ByteOperations.Right(block64);
 
             // We unrolled the Feistel loop, so the very first key XOR happens
             // outside the loop here.
@@ -46,10 +46,10 @@ namespace AustinXYZ
         /// <param name="block64"></param>
         /// <param name="Schedule"></param>
         /// <returns></returns>
-        public static UInt64 DecryptBlock(UInt64 block64, BlowfishContext Context)
+        public static UInt64 Decrypt(UInt64 block64, BlowfishContext Context)
         {
-            UInt32 left32 = ByteOperations.Right(block64);
-            UInt32 right32 = ByteOperations.Left(block64);
+            UInt32 left32 = ByteOperations.Left(block64);
+            UInt32 right32 = ByteOperations.Right(block64);
 
             // We unrolled the Feistel loop, so the very first key XOR happens
             // outside the loop here.

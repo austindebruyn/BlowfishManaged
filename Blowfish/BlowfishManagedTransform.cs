@@ -10,9 +10,14 @@ using AustinXYZ.KeyGeneration;
 namespace AustinXYZ
 {
     /// <summary>
+    /// An enumeratd
+    /// </summary>
+    internal enum BlowfishManagedTransformMode { Encrypt, Decrypt }; 
+
+    /// <summary>
     /// Performs a cryptographic transformation of data using the Blowfish algorithm. This class cannot be inherited.
     /// </summary>
-    public sealed class BlowfishManagedTransform : ICryptoTransform, IDisposable
+    internal sealed class BlowfishManagedTransform : ICryptoTransform, IDisposable
     {
         /// <summary>
         /// The context of precomputed s-boxes and schedule for each key used. The engine
@@ -24,17 +29,25 @@ namespace AustinXYZ
         /// <summary>
         /// Gets whether or not the transform is an encryption or a decryption.
         /// </summary>
-        bool IsEncrypting;
+        BlowfishManagedTransformMode Mode;
+
+        /// <summary>
+        /// Gets or sets the block cipher mode to use for encryption.
+        /// </summary>
+        CipherMode CipherMode;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="Key"></param>
         /// <param name="IV"></param>
-        public BlowfishManagedTransform(BlowfishContext Context, bool IsEncrypting = true)
+        internal BlowfishManagedTransform(BlowfishContext Context, CipherMode CipherMode, BlowfishManagedTransformMode Mode)
         {
             this.Context = Context;
-            this.IsEncrypting = IsEncrypting;
+            this.Mode = Mode;
+            this.CipherMode = CipherMode;
+
+            if (CipherMode != CipherMode.ECB) throw new CryptographicException("Invalid cipher mode.");
         }
 
         /// <summary>
@@ -42,7 +55,7 @@ namespace AustinXYZ
         /// </summary>
         public bool CanReuseTransform
         {
-            get { return false; }
+            get { return true; }
         }
 
         /// <summary>
@@ -50,7 +63,7 @@ namespace AustinXYZ
         /// </summary>
         public bool CanTransformMultipleBlocks
         {
-            get { return true; }
+            get { return false; }
         }
 
         /// <summary>
@@ -58,7 +71,7 @@ namespace AustinXYZ
         /// </summary>
         public int InputBlockSize
         {
-            get { return 64; }
+            get { return 8; }
         }
 
         /// <summary>
@@ -66,11 +79,12 @@ namespace AustinXYZ
         /// </summary>
         public int OutputBlockSize
         {
-            get { return 64; }
+            get { return 8; }
         }
 
         /// <summary>
-        /// Transforms the specified region of the input byte array and copies the resulting transform to the specified region of the output byte array.
+        /// Transforms the specified region of the input byte array and copies the resulting transform to the specified
+        /// region of the output byte array.
         /// </summary>
         /// <param name="inputBuffer">The input for which to compute the transform.</param>
         /// <param name="inputOffset">The offset into the input byte array from which to begin using data.</param>
@@ -80,11 +94,16 @@ namespace AustinXYZ
         /// <returns>The number of bytes written.</returns>
         public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
         {
-            byte[] transformedBytes = TransformFinalBlock(inputBuffer, inputOffset, inputCount);
+            UInt64 block = ByteOperations.PackBytesIntoUInt64(inputBuffer, inputOffset);
 
-            Array.Copy(transformedBytes, 0, outputBuffer, outputOffset, transformedBytes.Length);
+            // Call a function from the blowfish engine function.
+            if (Mode == BlowfishManagedTransformMode.Encrypt) block = BlowfishEngine.Encrypt(block, Context);
+            if (Mode == BlowfishManagedTransformMode.Decrypt) block = BlowfishEngine.Decrypt(block, Context);
 
-            return transformedBytes.Length;
+            byte[] TransformedBytes = ByteOperations.UnpackUInt64IntoBytes(block);
+
+            Array.Copy(TransformedBytes, 0, outputBuffer, outputOffset, TransformedBytes.Length);
+            return TransformedBytes.Length;
         }
 
         /// <summary>
@@ -98,20 +117,11 @@ namespace AustinXYZ
         {
             UInt64 block = ByteOperations.PackBytesIntoUInt64(inputBuffer, inputOffset);
 
-            UInt64 transformed;
-            if (IsEncrypting)
-                transformed = BlowfishEngine.EncryptBlock(ByteOperations.Swap(block), Context);
-            else
-                transformed = BlowfishEngine.DecryptBlock(ByteOperations.Swap(block), Context);
+            // Call a function from the blowfish engine function.
+            if (Mode == BlowfishManagedTransformMode.Encrypt) block = BlowfishEngine.Encrypt(block, Context);
+            if (Mode == BlowfishManagedTransformMode.Decrypt) block = BlowfishEngine.Decrypt(block, Context);
 
-            byte[] returnBytes = new byte[8];
-
-            for (int i = 0; i < 8; i++)
-            {
-                returnBytes[i] = (byte) (0xFF & (transformed >> ((7 - i) * 8)));
-            }
-
-            return returnBytes;
+            return ByteOperations.UnpackUInt64IntoBytes(block);
         }
 
         /// <summary>
