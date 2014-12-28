@@ -201,6 +201,21 @@ namespace BlowfishManaged
         }
 
         /// <summary>
+        /// Encrypts a single block, running the 64 bits of data through all 16
+        /// rounds of the Blowfish algorithm. Returns the encrypted 64 bits.
+        /// </summary>
+        /// <param name="block64"></param>
+        /// <param name="Schedule"></param>
+        /// <returns></returns>
+        public byte[] EncryptSingleBlock(byte[] block64, int Offset = 0)
+        {
+            UInt64 Block = ByteOperations.PackBytesIntoUInt64(block64, Offset);
+            if (Context == null) Context = new BlowfishContext(Key);
+
+            return ByteOperations.UnpackUInt64IntoBytes(BlowfishEngine.Encrypt(Block, Context));
+        }
+
+        /// <summary>
         /// Decrypts a single block, running the 64 bits of data through all 16
         /// rounds of the Blowfish algorithm. Returns the decrypted 64 bits.
         /// </summary>
@@ -211,6 +226,21 @@ namespace BlowfishManaged
         {
             if (Context == null) Context = new BlowfishContext(Key);
             return BlowfishEngine.Decrypt(block64, Context);
+        }
+
+        /// <summary>
+        /// Decrypts a single block, running the 64 bits of data through all 16
+        /// rounds of the Blowfish algorithm. Returns the decrypted 64 bits.
+        /// </summary>
+        /// <param name="block64"></param>
+        /// <param name="Schedule"></param>
+        /// <returns></returns>
+        public byte[] DecryptSingleBlock(byte[] block64, int Offset = 0)
+        {
+            UInt64 Block = ByteOperations.PackBytesIntoUInt64(block64, Offset);
+            if (Context == null) Context = new BlowfishContext(Key);
+
+            return ByteOperations.UnpackUInt64IntoBytes(BlowfishEngine.Decrypt(Block, Context));
         }
 
         /// <summary>

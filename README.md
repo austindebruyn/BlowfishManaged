@@ -30,7 +30,6 @@ byte[] decrypted = new byte[512];
 
 SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
 blowfish.Key = Encoding.UTF8.GetBytes("secret key");
-blowfish.GenerateIV();
 ```
 
 For an encryption stream, create a *Write*-able *CryptoStream* with a new memory stream and a call to **BlowfishManaged.CreateEncryptor()**.
@@ -45,7 +44,7 @@ using (MemoryStream memoryStream = new MemoryStream())
 }
 ```
 
-For an encryption stream, create a *Read*-able *CryptoStream* with a new memory stream and a call to **BlowfishManaged.CreateDecryptor()**.
+For a decryption stream, create a *Read*-able *CryptoStream* with a new memory stream and a call to **BlowfishManaged.CreateDecryptor()**.
 If you instantiate the memory stream with a byte array, it will automatically funnel all bytes through the crypto stream. Reading from the crypto stream will return decrypted data.
 
 ```C#
@@ -60,9 +59,47 @@ The decrypted and plaintext arrays are identical at this point.
 
 ## Encrypt a stream in CBC mode
 
-BlowfishManaged does not implement CBC mode internally, due to .NET limitations.
+BlowfishManaged does not implement CBC (cipher-block chaining) mode internally, due to .NET limitations.
 Microsoft's AesManaged implementation gets around this by making unsafe calls to memory directly, but it is not difficult to set up a CBC stream yourself.
-Example coming soon.
+
+```C#
+byte[] Data = new byte[512];
+
+BlowfishManaged.BlowfishManaged blowfish = new BlowfishManaged.BlowfishManaged();
+blowfish.Key = Encoding.UTF8.GetBytes("secret key");
+blowfish.GenerateIV();
+```
+
+To encrypt in CBC mode, each block needs to be successively XOR'd with the previous block.
+The first block is XOR'd with a randomly generated bitstring, called the IV (initialization vector).
+Call *BlowfishManaged.GenerateIV()* to create one for you.
+
+```C#
+int offset = 0;
+while (offset < Data.Length)
+{
+    for (int i = offset; i < offset + 8; i++)
+        Data[i] ^= (offset > 0) ? Data[i - 8] : blowfish.IV[i];
+
+    Blowfish.EncryptSingleBlock(Data, offset);
+    offset += 8;
+}
+```
+
+To decrypt, run the same loop in reverse. Starting at the end of the byte stream, decrypt each block and XOR it with the previous block. The first block (final block to be decrypted) should be XOR'd with the same IV.
+
+```C#
+int offset = Data.Length - 8;
+while (offset >= 0)
+{
+    blowfish.DecryptSingleBlock(Data, offset);
+
+    for (int i = offset; i < offset + 8; i++)
+        Data[i] ^= (offset > 0) ? Data[i - 8] : blowfish.IV[i];
+
+    offset -= 8;
+}
+```
 
 ## Performance
 
