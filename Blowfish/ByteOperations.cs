@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices; 
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,11 +14,11 @@ namespace BlowfishManaged
         /// </summary>
         /// <param name="hexString"></param>
         /// <returns></returns>
-        public static byte[] ConvertHexStringToByteArray(string hexString)
+        internal static byte[] ConvertHexStringToByteArray(string hexString)
         {
             if (hexString.Length % 2 != 0)
             {
-                throw new ArgumentException(String.Format(System.Globalization.CultureInfo.InvariantCulture, "The binary key cannot have an odd number of digits: {0}", hexString));
+                throw new ArgumentException(String.Format("The binary key cannot have an odd number of digits: {0}", hexString));
             }
 
             byte[] HexAsBytes = new byte[hexString.Length / 2];
@@ -35,7 +36,7 @@ namespace BlowfishManaged
         /// </summary>
         /// <param name="Data"></param>
         /// <returns></returns>
-        public static UInt64 PackBytesIntoUInt64(Byte[] Data, int offset = 0)
+        internal static UInt64 PackBytesIntoUInt64(Byte[] Data, int offset = 0)
         {
             UInt64 newData = 0;
 
@@ -52,7 +53,7 @@ namespace BlowfishManaged
         /// </summary>
         /// <param name="?"></param>
         /// <returns></returns>
-        public static byte[] UnpackUInt64IntoBytes(UInt64 Data)
+        internal static byte[] UnpackUInt64IntoBytes(UInt64 Data)
         {
             byte[] Bytes = new byte[8];
 
@@ -70,7 +71,8 @@ namespace BlowfishManaged
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public static UInt64 Combine(UInt32 left, UInt32 right)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static UInt64 Combine(UInt32 left, UInt32 right)
         {
             return (UInt64)left << 32 | right;
         }
@@ -80,7 +82,8 @@ namespace BlowfishManaged
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static UInt32 Left(UInt64 value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static UInt32 Left(UInt64 value)
         {
             return (UInt32)(0xFFFFFFFF & (value >> 32));
         }
@@ -90,7 +93,8 @@ namespace BlowfishManaged
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static UInt32 Right(UInt64 value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static UInt32 Right(UInt64 value)
         {
             return (UInt32)(0xFFFFFFFF & value);
         }
@@ -101,7 +105,8 @@ namespace BlowfishManaged
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static UInt64 Swap(UInt64 value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static UInt64 Swap(UInt64 value)
         {
             return Combine(Right(value), Left(value));
         }
@@ -111,7 +116,7 @@ namespace BlowfishManaged
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public String UInt64ToByteString(UInt64 value)
+        internal String UInt64ToByteString(UInt64 value)
         {
             return String.Format("0x{0:X16}", value);
         }
@@ -121,9 +126,29 @@ namespace BlowfishManaged
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public String UInt32ToByteString(UInt32 value)
+        internal String UInt32ToByteString(UInt32 value)
         {
             return String.Format("0x{0:X8}", value);
+        }
+
+        /// <summary>
+        /// Returns whether or not the two byte arrays are identical.
+        /// </summary>
+        /// <param name="rgbKey"></param>
+        /// <param name="Key"></param>
+        /// <returns></returns>
+        internal static bool ArraysEqual(byte[] array1, byte[] array2)
+        {
+            if (array1 == null || array2 == null) throw new ArgumentNullException();
+
+            if (array1.Length != array2.Length) return false;
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i]) return false;
+            }
+
+            return true;
         }
     }
 }
