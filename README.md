@@ -1,7 +1,7 @@
 # BlowfishManaged
 =================
 
-A C# managed-memory implementation of the Blowfish cipher in .NET's security model.
+A C# managed-memory implementation of the Blowfish cipher in .NET's Security interface.
 Designed with performance and code aesthetics in mind. Benchmarks are at the bottom of this page.
 Like the Blowfish cipher, this code is public domain.
 
@@ -32,12 +32,11 @@ byte[] encrypted;
 byte[] decrypted = new byte[512];
 
 SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
-blowfish.GenerateKey();
 blowfish.Key = Encoding.UTF8.GetBytes("secret key");
 blowfish.GenerateIV();
 ```
 
-For an encryption stream, create a **Write**-able *CryptoStream* with a new memory stream and a call to **BlowfishManaged.CreateEncryptor()**.
+For an encryption stream, create a *Write*-able *CryptoStream* with a new memory stream and a call to **BlowfishManaged.CreateEncryptor()**.
 All bytes written into the crypto stream will be encrypted and accessible via the memory stream.
 
 ```C#
@@ -49,11 +48,10 @@ using (MemoryStream memoryStream = new MemoryStream())
 }
 ```
 
-For an encryption stream, create a **Read**-able *CryptoStream* with a new memory stream and a call to **BlowfishManaged.CreateDecryptor()**.
+For an encryption stream, create a *Read*-able *CryptoStream* with a new memory stream and a call to **BlowfishManaged.CreateDecryptor()**.
 If you instantiate the memory stream with a byte array, it will automatically funnel all bytes through the crypto stream. Reading from the crypto stream will return decrypted data.
 
 ```C#
-Stream all ciphertext bytes through the blowfish decryptor.
 using (MemoryStream memoryStream = new MemoryStream(encrypted))
 using (CryptoStream cryptoStream = new CryptoStream(memoryStream, blowfish.CreateDecryptor(), CryptoStreamMode.Read))
 {
@@ -67,16 +65,15 @@ The decrypted and plaintext arrays are identical at this point.
 
 The most expensive part of encryption with Blowfish is the key-dependent s-box and round key generation steps. A total of 521 encryption iterations are needed just to set up all of the round keys. This discourages brute-force key guessing.
 
-I tested my implementation against the one provided on Shneier's website at
+I tested my implementation against the C# Blowfish implementation provided on the inventor's website at
 * https://www.schneier.com/blowfish-download.html
 
 Measured on an Intel i7 processor,
 
-X | Generate 100,000 Key Schedules  | Encrypt 1GB Data | Decrypt 1GB Data
+ | Generate 100,000 Key Schedules  | Encrypt 1GB Data | Decrypt 1GB Data
 ------------- | ------------- | ------------- | -------------
-BlowfishManaged  | 5.68 μs per K.S. | 141.469 ms per MB | 146.259 ms per MB
-FireXware's BlowfishCS  | 19.48μs per K.S. | 266.387 ms per MB | 276.892 ms per MB
+BlowfishManaged  | 5.68 μs / K.S. | 141.469 ms / MB | 146.259 ms / MB
+BlowfishCS  | 19.48μs / K.S. | 266.387 ms / MB | 276.892 ms / MB
 
-I have identified what the bottleneck is in FireXware's BlowfishCS source.
-
+On average, my BlowfishManaged library provides substantial gains over the open-source implementation.
 
