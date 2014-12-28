@@ -21,10 +21,7 @@ UInt64 Decrypted = Blowfish.DecryptSingleBlock(Encrypted);
 Console.WriteLine(String.Format("0x{0:X}", Decrypted)); // 0xABCDEF1234C0FFEE
 ```
 
-## Encrypt a stream in CBC mode
-
-BlowfishManaged does not implement CBC mode internally, due to .NET limitations.
-Microsoft's AesManaged implementation gets around this by making unsafe calls to memory directly, but it is not difficult to set up a CBC stream yourself.
+## Encrypt a stream
 
 ```C#
 byte[] plaintext = new byte[512];
@@ -60,6 +57,12 @@ using (CryptoStream cryptoStream = new CryptoStream(memoryStream, blowfish.Creat
 ```
 
 The decrypted and plaintext arrays are identical at this point.
+
+## Encrypt a stream in CBC mode
+
+BlowfishManaged does not implement CBC mode internally, due to .NET limitations.
+Microsoft's AesManaged implementation gets around this by making unsafe calls to memory directly, but it is not difficult to set up a CBC stream yourself.
+Example coming soon.
 
 ## Performance
 
