@@ -151,7 +151,7 @@ namespace BlowfishManaged
         {
             BlowfishContext encryptionContext = null;
 
-            if (rgbKey.Equals(Key))
+            if (ByteOperations.ArraysEqual(rgbKey, Key))
             {
                 if (Context == null) Context = new BlowfishContext(Key);
                 encryptionContext = Context;
@@ -174,7 +174,7 @@ namespace BlowfishManaged
         {
             BlowfishContext encryptionContext = null;
 
-            if (rgbKey.Equals(Key))
+            if (ByteOperations.ArraysEqual(rgbKey, Key))
             {
                 if (Context == null) Context = new BlowfishContext(Key);
                 encryptionContext = Context;
