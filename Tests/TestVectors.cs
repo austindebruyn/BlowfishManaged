@@ -58,7 +58,7 @@ namespace UnitTests
                 byte[] Cleartext = ByteOperations.UnpackUInt64IntoBytes(testVectors[i, 1]);
                 byte[] Expected = ByteOperations.UnpackUInt64IntoBytes(testVectors[i, 2]);
 
-                AustinXYZ.BlowfishManaged blowfish = new AustinXYZ.BlowfishManaged();
+                BlowfishManaged.BlowfishManaged blowfish = new BlowfishManaged.BlowfishManaged();
                 blowfish.Key = Key;
                 blowfish.Mode = CipherMode.ECB;
                 ICryptoTransform transform = blowfish.CreateEncryptor();

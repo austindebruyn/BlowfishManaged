@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AustinXYZ
+namespace BlowfishManaged
 {
     internal class BlowfishConstants
     {

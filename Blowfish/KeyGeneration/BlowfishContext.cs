@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AustinXYZ.KeyGeneration
+namespace BlowfishManaged.KeyGeneration
 {
     /// <summary>
     /// The context encapsulates a number of runtime data structures used during encryption.

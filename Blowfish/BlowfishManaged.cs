@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 using System.Security.Cryptography;
 
-using AustinXYZ.KeyGeneration;
+using BlowfishManaged.KeyGeneration;
 
-namespace AustinXYZ
+namespace BlowfishManaged
 {
     /// <summary>
     /// An engine object that will drive all encryption activities. This is the public

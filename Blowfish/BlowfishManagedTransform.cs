@@ -5,9 +5,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-using AustinXYZ.KeyGeneration;
+using BlowfishManaged.KeyGeneration;
 
-namespace AustinXYZ
+namespace BlowfishManaged
 {
     /// <summary>
     /// An enumeratd
@@ -17,7 +17,7 @@ namespace AustinXYZ
     /// <summary>
     /// Performs a cryptographic transformation of data using the Blowfish algorithm. This class cannot be inherited.
     /// </summary>
-    internal sealed class BlowfishManagedTransform : ICryptoTransform, IDisposable
+    public sealed class BlowfishManagedTransform : ICryptoTransform, IDisposable
     {
         /// <summary>
         /// The context of precomputed s-boxes and schedule for each key used. The engine

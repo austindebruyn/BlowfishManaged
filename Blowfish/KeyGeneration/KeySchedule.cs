@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AustinXYZ.KeyGeneration
+namespace BlowfishManaged.KeyGeneration
 {
     /// <summary>
     /// Internal class to represent a full round of keys.

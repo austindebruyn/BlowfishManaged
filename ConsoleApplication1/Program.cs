@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using System.Diagnostics;
 
-using AustinXYZ;
+using BlowfishManaged;
 using System.Security.Cryptography;
 using System.IO;
 
@@ -16,57 +16,68 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            var AAA = new AesManaged();
-            var aesenc = AAA.CreateEncryptor();
-            var aesdec = AAA.CreateDecryptor();
-            byte[] plaintext = new byte[16];
-            byte[] encrypted;
-            byte[] decrypted = new byte[16];
+            Stopwatch watch = new Stopwatch();
 
-            for (int i = 0; i < plaintext.Length; i++) plaintext[i] = 10;
-            Console.WriteLine("Plaintext bytes: {0}.", BitConverter.ToString(plaintext));
+            double iterations = 1000;
 
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
-            blowfish.GenerateKey();
-            blowfish.GenerateIV();
-            blowfish.Mode = CipherMode.CBC;
-
-            Console.WriteLine("Key: {0}.", BitConverter.ToString(blowfish.Key));
-            Console.WriteLine("IV: {0}.", BitConverter.ToString(blowfish.IV));
-            Console.WriteLine("Cipher Mode: {0}.", blowfish.Mode);
-            Console.WriteLine("");
-
-            // Stream all plaintext bytes through the blowfish encryptor.
-            using (MemoryStream memoryStream = new MemoryStream())
+            long total1 = 0;
+            for (int i = 0; i < iterations; i++)
             {
-                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, blowfish.CreateEncryptor(), CryptoStreamMode.Write))
-                    cryptoStream.Write(plaintext, 0, plaintext.Length);
-                encrypted = memoryStream.GetBuffer();
+                TestBlowfish(watch);
+                total1 += watch.ElapsedMilliseconds;
             }
 
-            // Make sure that CBC is properly subtituting. If CBC used the IV correctly, the second block should
-            // be much different from the first, even though the source input block was the same for both.
-            int BlockSize = blowfish.BlockSize / 8;
-            byte[] FirstBlock = new byte[BlockSize];
-            byte[] SecondBlock = new byte[BlockSize];
-            Array.Copy(encrypted, 0, FirstBlock, 0, BlockSize);
-            Array.Copy(encrypted, BlockSize, SecondBlock, 0, BlockSize);
-
-            if (FirstBlock.SequenceEqual<byte>(SecondBlock))
-                Console.WriteLine("First and second block are EQUAL.");
-            else
-                Console.WriteLine("First and second blocks are NOT EQUAL - CBC worked.");
-
-            // Stream all ciphertext bytes through the blowfish decryptor.
-            using (MemoryStream memoryStream = new MemoryStream(encrypted))
-            using (CryptoStream cryptoStream = new CryptoStream(memoryStream, blowfish.CreateDecryptor(), CryptoStreamMode.Read))
+            long total2 = 0;
+            for (int i = 0; i < iterations; i++)
             {
-                int bytesRead = cryptoStream.Read(decrypted, 0, decrypted.Length);
+                TestFireX(watch);
+                total2 += watch.ElapsedMilliseconds;
             }
 
-            Console.WriteLine("\nDecrypted bytes: {0}.", BitConverter.ToString(decrypted));
-
+            Console.WriteLine((double)total1 / iterations);
+            Console.WriteLine((double)total2 / iterations);
             Console.ReadLine();
+        }
+
+        static void TestBlowfish(Stopwatch Watch)
+        {
+            byte[] cipherKey = new byte[32];
+            Random r = new Random();
+            r.NextBytes(cipherKey);
+            BlowfishManaged.BlowfishManaged bfm = new BlowfishManaged.BlowfishManaged(cipherKey);
+
+            int iterations = 1048576 / 8;
+            UInt64[] data = new UInt64[iterations];
+            UInt64[] encrypted = new UInt64[iterations];
+
+            Watch.Reset();
+            Watch.Start();
+
+            for (int i = 0; i < iterations; i++)
+            {
+                encrypted[i] = bfm.DecryptSingleBlock(data[i]);
+            }
+
+            Watch.Stop();
+        }
+
+        static void TestFireX(Stopwatch Watch)
+        {
+            byte[] cipherKey = new byte[32];
+            Random r = new Random();
+            r.NextBytes(cipherKey);
+            BlowFishCS.BlowFish blowfish = new BlowFishCS.BlowFish(cipherKey);
+            int iterations = 1048576;
+            byte[] data = new byte[iterations];
+            byte[] encrypted = new byte[iterations];
+
+            Watch.Reset();
+            Watch.Start();
+
+                encrypted = blowfish.Decrypt_ECB(data);// .EncryptSingleBlock(data[i]);
+
+
+            Watch.Stop();
         }
     }
 }

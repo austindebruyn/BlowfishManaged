@@ -15,7 +15,7 @@ namespace UnitTests
             byte[] encrypted = new byte[8];
             byte[] decrypted = new byte[8];
 
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
             blowfish.Key = System.Text.Encoding.UTF8.GetBytes("abcdefghijklmnop");
             
             ICryptoTransform encryptor = blowfish.CreateEncryptor();
@@ -36,7 +36,7 @@ namespace UnitTests
 
             for (int i = 0; i < 512; i++) plaintext[i] = 10;
 
-            AustinXYZ.BlowfishManaged blowfish = new AustinXYZ.BlowfishManaged();
+            BlowfishManaged.BlowfishManaged blowfish = new BlowfishManaged.BlowfishManaged();
             blowfish.Key = System.Text.Encoding.UTF8.GetBytes("zzzzxcvmnopoabjk");
             blowfish.GenerateIV();
 

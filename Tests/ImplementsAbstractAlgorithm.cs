@@ -10,7 +10,7 @@ namespace UnitTests
         [TestMethod]
         public void it_validates_key_sizes()
         {
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
 
             for (int i = 32; i <= 448; i++)
             {
@@ -21,7 +21,7 @@ namespace UnitTests
         [TestMethod]
         public void it_accepts_well_formed_key()
         {
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
 
             blowfish.Key = new byte[] { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
         }
@@ -29,7 +29,7 @@ namespace UnitTests
         [TestMethod]
         public void it_rejects_well_formed_short_key()
         {
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
 
             blowfish.Key = new byte[] { 0xAB };
         }
@@ -38,7 +38,7 @@ namespace UnitTests
         [ExpectedException(typeof(CryptographicException))]
         public void it_rejects_malformed_long_key()
         {
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
 
             blowfish.Key = new byte[60];
         }
@@ -46,7 +46,7 @@ namespace UnitTests
         [TestMethod]
         public void it_returns_proper_block_sizes()
         {
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
 
             foreach (var blockSize in blowfish.LegalBlockSizes) Assert.AreEqual(blockSize.MinSize, 64);
             foreach (var blockSize in blowfish.LegalBlockSizes) Assert.AreEqual(blockSize.MaxSize, 64);
@@ -55,7 +55,7 @@ namespace UnitTests
         [TestMethod]
         public void it_accepts_well_formed_iv()
         {
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
             
             byte[] iv = System.Text.Encoding.UTF8.GetBytes("UsAMkD7N");
 
@@ -67,7 +67,7 @@ namespace UnitTests
         [ExpectedException(typeof(CryptographicException))]
         public void it_rejects_malformed_short_iv()
         {
-            SymmetricAlgorithm blowfish = new AustinXYZ.BlowfishManaged();
+            SymmetricAlgorithm blowfish = new BlowfishManaged.BlowfishManaged();
 
             blowfish.BlockSize = 64;
             blowfish.IV = new byte[] { 0xAB };
